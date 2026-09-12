@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#071525">
+  <meta name="description" content="Afterlight — walk on what you leave behind.">
+  <title>AFTERLIGHT — Walk on what you leave behind</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main id="app" class="app-shell">
+    <section class="stage" aria-label="Afterlight game">
+      <canvas id="game" width="960" height="540" aria-label="Afterlight game world"></canvas>
+
+      <div id="title-screen" class="screen title-screen">
+        <div class="title-copy">
+          <p class="eyebrow">THE DROWNED OBSERVATORY</p>
+          <h1>AFTERLIGHT</h1>
+          <p class="hook">Walk on what you leave behind.</p>
+          <p class="title-note">The last lamplighter carries one small flame<br>through the rooms the sea could not keep.</p>
+          <p class="mechanic-line">Rewind three seconds. Turn your footsteps into solid light.</p>
+          <button id="start-button" class="primary-button" type="button">Begin <span aria-hidden="true">↗</span></button>
+          <button id="continue-button" class="text-button hidden" type="button">Continue the watch</button>
+        </div>
+        <div class="legend" aria-label="Keyboard controls">
+          <span><kbd>A</kbd><kbd>D</kbd> move</span>
+          <span><kbd>SPACE</kbd> jump</span>
+          <span><kbd>E</kbd> rewind</span>
+        </div>
+        <p class="title-credit">A quiet game about the shape of memory</p>
+      </div>
+
+      <div id="pause-screen" class="screen modal-screen hidden" aria-hidden="true">
+        <p class="eyebrow">THE LAMP IS RESTING</p>
+        <h2>Paused</h2>
+        <p>Your path waits in the dark.</p>
+        <div class="button-row">
+          <button id="resume-button" class="primary-button" type="button">Resume</button>
+          <button id="restart-button" class="secondary-button" type="button">Restart room</button>
+          <button id="menu-button" class="text-button" type="button">Return to title</button>
+        </div>
+      </div>
+
+      <div id="complete-screen" class="screen modal-screen hidden" aria-hidden="true">
+        <p class="eyebrow">ROOM RESTORED</p>
+        <h2 id="complete-title">A light remembers</h2>
+        <p id="complete-copy">The observatory opens one more room.</p>
+        <button id="next-button" class="primary-button" type="button">Next room <span aria-hidden="true">↗</span></button>
+      </div>
+
+      <div id="ending-screen" class="screen modal-screen ending-screen hidden" aria-hidden="true">
+        <p class="eyebrow">THE LAST LANTERN</p>
+        <h2>The night holds.</h2>
+        <p id="ending-stats">Eight rooms, one patient flame.</p>
+        <button id="replay-button" class="primary-button" type="button">Walk it again <span aria-hidden="true">↗</span></button>
+      </div>
+
+      <div class="vignette" aria-hidden="true"></div>
+      <div class="grain" aria-hidden="true"></div>
+    </section>
+
+    <header class="hud" aria-label="Current room">
+      <div class="hud-room"><span class="hud-kicker">ROOM</span><span id="level-number">01</span><span class="hud-divider">/</span><span class="hud-total">08</span></div>
+      <div class="hud-name" id="level-name">The First Light</div>
+      <div class="hud-right">
+        <div class="seed-readout"><span class="seed-mark" aria-hidden="true">✦</span><span id="seed-count">0 / 0</span></div>
+        <div class="tape-wrap" title="Memory tape remaining"><span class="hud-kicker">TAPE</span><div class="tape-track"><div id="tape-fill" class="tape-fill"></div></div><span id="echo-readout">READY</span></div>
+        <button id="mute-button" class="icon-button" type="button" aria-label="Mute audio" aria-pressed="false">◒</button>
+        <button id="motion-button" class="icon-button" type="button" aria-label="Reduce motion" aria-pressed="false">✧</button>
+        <button id="pause-button" class="icon-button" type="button" aria-label="Pause">Ⅱ</button>
+      </div>
+    </header>
+
+    <div class="under-stage">
+      <p id="hint" class="hint" aria-live="polite">A path is only waiting to become a bridge.</p>
+      <div class="run-readout"><span class="hud-kicker">RUN TIME</span><span id="run-time">00:00.0</span></div>
+      <p class="control-strip"><span><kbd>A</kbd><kbd>D</kbd> move</span><span><kbd>SPACE</kbd> jump</span><span><kbd>E</kbd> rewind</span><span><kbd>R</kbd> restart</span></p>
+    </div>
+
+    <div class="touch-controls" aria-label="Touch controls">
+      <button data-control="left" type="button" aria-label="Move left">←</button>
+      <button data-control="right" type="button" aria-label="Move right">→</button>
+      <span></span>
+      <button data-control="down" type="button" aria-label="Drop through">↓</button>
+      <button data-control="jump" type="button" aria-label="Jump">↑</button>
+      <button data-control="rewind" type="button" aria-label="Rewind">↶</button>
+    </div>
+  </main>
+  <script src="levels.js"></script>
+  <script src="engine.js"></script>
+  <script src="renderer.js"></script>
+  <script src="audio.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>

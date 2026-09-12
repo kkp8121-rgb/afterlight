@@ -1,0 +1,16 @@
+{
+  "name": "afterlight",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AFTERLIGHT, a dependency-free browser game",
+  "scripts": {
+    "serve": "node tools/server.cjs",
+    "pack": "node tools/pack.cjs",
+    "test:engine": "node --test tests/engine.test.cjs",
+    "test:browser": "node tests/browser.spec.cjs",
+    "test": "node --test tests/*.test.cjs && node tests/browser.spec.cjs"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
+}
