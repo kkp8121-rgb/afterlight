@@ -9,3 +9,4 @@ An independent, dependency-free browser game. Do not edit PROMPTRON or C:/Projec
 - Explicit paths when staging; root owns Git commits and deployment. No pushes without the user's per-push approval.
 - Root verifies actual keyboard play, screenshots, entire campaign, audio and deployed paths before completion.
 - Other agents share this folder. Do not revert or edit files owned by another agent.
+- Use a small swept-contact tolerance for one-way memories; forgiving solid-ledge snapping must never turn a dense memory path into an automatic elevator. Keep the idle-after-rewind regression test.

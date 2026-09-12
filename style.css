@@ -134,7 +134,19 @@ kbd { display: inline-flex; min-width: 21px; height: 20px; align-items: center; 
   .legend { top: 13px; right: 18px; }
   .title-credit { display: none; }
 }
-@media (pointer: coarse) and (max-width: 700px) and (orientation: portrait) {
+@media (max-width: 700px) and (orientation: portrait) {
+  .stage { height: 440px; aspect-ratio: auto; }
+  body[data-mode="playing"] .stage { height: auto; aspect-ratio: 16 / 9; }
+  body[data-mode="title"] #game,
+  body[data-mode="paused"] #game,
+  body[data-mode="room-complete"] #game,
+  body[data-mode="ending"] #game { inset: auto 0 0; width: 100%; height: auto; aspect-ratio: 16 / 9; }
+  .title-copy { max-width: 100%; }
+  .title-screen h1 { font-size: clamp(39px, 11vw, 44px); }
+  .screen { overflow-y: auto; }
+  .hud { grid-template-columns: auto 1fr; row-gap: 6px; }
+  .hud-right { grid-column: 1 / -1; grid-row: 2; justify-content: flex-end; flex-wrap: wrap; }
+  .seed-readout, .tape-wrap { display: flex; }
   .touch-controls { margin-top: 10px; }
 }
 @media (prefers-reduced-motion: reduce) {

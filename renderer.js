@@ -32,6 +32,8 @@
       this.shake = 0;
       this.flash = 0;
       this.pixelRatio = 0;
+      this.staticCache = new Map();
+      this.terrainCache = new Map();
       this.dust = Array.from({ length: 92 }, (_, i) => ({
         x: hash(i * 2.3) * W, y: 42 + hash(i * 4.1) * 410,
         r: .35 + hash(i * 9.7) * 1.2, phase: hash(i * 13.2) * TAU,
@@ -41,9 +43,11 @@
     }
 
     resize() {
-      const ratio = Math.min(2, Math.max(1, root.devicePixelRatio || 1));
+      const ratio = Math.min(1.25, Math.max(1, root.devicePixelRatio || 1));
       if (ratio === this.pixelRatio && this.canvas.width === W * ratio) return;
       this.pixelRatio = ratio;
+      this.staticCache.clear();
+      this.terrainCache.clear();
       this.canvas.width = W * ratio;
       this.canvas.height = H * ratio;
       this.ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
@@ -54,6 +58,8 @@
       this.shake = 0;
       this.flash = 0;
       this.lastStamp = '';
+      this.staticCache.clear();
+      this.terrainCache.clear();
     }
 
     draw(state, view) {
@@ -75,14 +81,18 @@
       const ctx = this.ctx;
       ctx.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
       ctx.clearRect(0, 0, W, H);
-      this.background(decor, mode);
+      const modeKey = mode === 'title' ? 'title' : mode === 'ending' ? 'ending' : 'play';
+      const staticLayer = this.staticLayer(state, decor, modeKey);
+      if (staticLayer) ctx.drawImage(staticLayer, 0, 0, W, H);
+      else { this.background(decor, modeKey); this.architecture(decor, modeKey); }
+      this.endingGlow(mode, reduced);
+      this.constellation(state, mode, reduced);
       const nudge = mode === 'title' || reduced ? 0 : (this.shake ? (hash(this.time * 91) - .5) * this.shake : 0);
       ctx.save(); ctx.translate(nudge, nudge * .35);
-      this.architecture(decor, mode);
       this.water(decor);
       this.pendingTrail(state, reduced);
       this.returnMarker(state, reduced);
-      this.worldObjects(state, decor, mode, reduced);
+      this.worldObjects(state, decor, mode, reduced, this.terrainLayer(state));
       this.drawParticles();
       ctx.restore();
       if (this.flash > 0) {
@@ -131,6 +141,82 @@
         const a = .2 + hash(i * 5.2) * .55;
         ctx.fillStyle = `rgba(182,246,216,${a})`; ctx.fillRect(x, y, 1 + hash(i) * 1.4, 1 + hash(i + 4) * 1.4);
       }
+    }
+
+    endingGlow(mode, reduced) {
+      if (mode !== 'ending') return;
+      const ctx = this.ctx;
+      const pulse = reduced ? .1 : .085 + Math.sin(this.time * .7) * .018;
+      const warm = ctx.createRadialGradient(480, 382, 8, 480, 382, 285);
+      warm.addColorStop(0, `rgba(245,174,122,${pulse})`); warm.addColorStop(1, 'rgba(245,174,122,0)');
+      ctx.fillStyle = warm; ctx.fillRect(160, 190, 640, 350);
+      ctx.fillStyle = 'rgba(179,109,86,.08)'; ctx.fillRect(0, 342, W, 108);
+    }
+
+    makeLayer(alpha) {
+      const width = W * this.pixelRatio, height = H * this.pixelRatio;
+      let layer = null;
+      if (typeof root.OffscreenCanvas === 'function') layer = new root.OffscreenCanvas(width, height);
+      else if (root.document && root.document.createElement) {
+        layer = root.document.createElement('canvas'); layer.width = width; layer.height = height;
+      }
+      if (!layer) return null;
+      const ctx = layer.getContext('2d', { alpha: !!alpha });
+      if (!ctx) return null;
+      ctx.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
+      return layer;
+    }
+
+    drawToLayer(layer, draw) {
+      if (!layer) return;
+      const previous = this.ctx;
+      const target = layer.getContext('2d');
+      target.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
+      target.clearRect(0, 0, W, H);
+      this.ctx = target;
+      try { draw(); } finally { this.ctx = previous; }
+    }
+
+    staticLayer(state, decor, modeKey) {
+      const key = `${state.levelIndex || 0}|${modeKey}|${this.pixelRatio}`;
+      if (this.staticCache.has(key)) return this.staticCache.get(key);
+      const layer = this.makeLayer(false);
+      if (!layer) return null;
+      this.drawToLayer(layer, () => { this.background(decor, modeKey); this.architecture(decor, modeKey); });
+      this.staticCache.set(key, layer);
+      return layer;
+    }
+
+    terrainLayer(state) {
+      const key = `${state.levelIndex || 0}|${this.pixelRatio}`;
+      if (this.terrainCache.has(key)) return this.terrainCache.get(key);
+      const layer = this.makeLayer(true);
+      if (!layer) return null;
+      this.drawToLayer(layer, () => {
+        for (const platform of (state.level && state.level.platforms) || []) this.platform(platform, false);
+      });
+      this.terrainCache.set(key, layer);
+      return layer;
+    }
+
+    constellation(state, mode, reduced) {
+      if (mode === 'title') return;
+      const ctx = this.ctx;
+      const xs = [300, 355, 410, 465, 520, 575, 630, 685];
+      const ys = [120, 88, 105, 65, 95, 64, 88, 118];
+      const completed = mode === 'ending' || mode === 'room-complete' || state.status === 'complete';
+      const lit = clamp((Number(state.levelIndex) || 0) + (completed ? 1 : 0), 0, xs.length);
+      ctx.save(); ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(182,246,216,.16)';
+      ctx.beginPath(); ctx.moveTo(xs[0], ys[0]);
+      for (let i = 1; i < xs.length; i++) ctx.lineTo(xs[i], ys[i]);
+      ctx.stroke();
+      for (let i = 0; i < xs.length; i++) {
+        const active = i < lit;
+        ctx.shadowColor = active ? '#b6f6d8' : 'transparent'; ctx.shadowBlur = active && !reduced ? 8 : 0;
+        ctx.fillStyle = active ? '#b6f6d8' : 'rgba(111,164,157,.42)';
+        ctx.beginPath(); ctx.arc(xs[i], ys[i], active ? 3.2 : 2, 0, TAU); ctx.fill();
+      }
+      ctx.restore();
     }
 
     architecture(decor, mode) {
@@ -187,10 +273,18 @@
       ctx.save(); ctx.setLineDash(reduced ? [3, 8] : [2, 9]); ctx.lineWidth = 1.4;
       ctx.strokeStyle = 'rgba(245,174,122,.58)'; ctx.shadowColor = '#f5ae7a'; ctx.shadowBlur = reduced ? 0 : 7;
       ctx.beginPath();
-      history.forEach((point, i) => { const x = point.x + playerWidth / 2, y = point.y + playerHeight; if (i) ctx.lineTo(x, y); else ctx.moveTo(x, y); });
+      const stride = history.length > 240 ? 2 : 1;
+      for (let i = 0; i < history.length; i += stride) {
+        const point = history[i], x = point.x + playerWidth / 2, y = point.y + playerHeight;
+        if (i) ctx.lineTo(x, y); else ctx.moveTo(x, y);
+      }
+      if ((history.length - 1) % stride) {
+        const point = history[history.length - 1];
+        ctx.lineTo(point.x + playerWidth / 2, point.y + playerHeight);
+      }
       ctx.stroke(); ctx.restore();
       ctx.fillStyle = 'rgba(245,174,122,.4)';
-      for (let i = 0; i < history.length; i += 10) { const p = history[i]; ctx.fillRect(p.x + playerWidth / 2 - 1, p.y + playerHeight - 1, 2, 2); }
+      for (let i = 0; i < history.length; i += stride * 10) { const p = history[i]; ctx.fillRect(p.x + playerWidth / 2 - 1, p.y + playerHeight - 1, 2, 2); }
     }
 
     returnMarker(state, reduced) {
@@ -206,10 +300,10 @@
       ctx.restore();
     }
 
-    worldObjects(state, decor, mode, reduced) {
+    worldObjects(state, decor, mode, reduced, terrain) {
       const ctx = this.ctx, level = state.level || {};
-      const platforms = level.platforms || [];
-      for (const platform of platforms) this.platform(platform, false);
+      if (terrain) ctx.drawImage(terrain, 0, 0, W, H);
+      else for (const platform of level.platforms || []) this.platform(platform, false);
       this.echoes(this.compactEchoes(state.echo || []));
       for (const hazard of level.hazards || []) {
         let rect = hazard;

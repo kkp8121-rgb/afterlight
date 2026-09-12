@@ -208,9 +208,13 @@ async function run() {
       const page = opened.page;
       const geometry = await page.evaluate(() => {
         const button = document.getElementById('start-button').getBoundingClientRect();
+        const heading = document.querySelector('#title-screen h1').getBoundingClientRect();
+        const stage = document.querySelector('.stage').getBoundingClientRect();
         const canvas = document.getElementById('game').getBoundingClientRect();
         return {
           button: { left: button.left, right: button.right, top: button.top, bottom: button.bottom },
+          heading: { left: heading.left, right: heading.right, top: heading.top, bottom: heading.bottom },
+          stage: { left: stage.left, right: stage.right, top: stage.top, bottom: stage.bottom },
           canvas: { left: canvas.left, right: canvas.right, top: canvas.top, bottom: canvas.bottom },
           width: innerWidth,
           height: innerHeight,
@@ -219,6 +223,10 @@ async function run() {
       });
       assert.ok(geometry.button.left >= 0 && geometry.button.right <= geometry.width, `${name} start button fits viewport`);
       assert.ok(geometry.button.top >= 0 && geometry.button.bottom <= geometry.height, `${name} start button is accessible`);
+      if (name === 'portrait') {
+        assert.ok(geometry.heading.top >= geometry.stage.top && geometry.heading.bottom <= geometry.stage.bottom,
+          'portrait title heading fits inside the taller title stage');
+      }
       assert.ok(geometry.canvas.left >= 0 && geometry.canvas.right <= geometry.width, `${name} canvas fits viewport`);
       assert.ok(geometry.scrollWidth <= geometry.width + 1, `${name} has no horizontal clipping`);
       await page.screenshot({ path: path.join(artifacts, `interaction-${name}.png`), fullPage: true });

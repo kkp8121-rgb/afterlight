@@ -20,7 +20,7 @@
       'restart-button', 'menu-button', 'complete-screen', 'next-button', 'ending-screen',
       'replay-button', 'level-number', 'level-name', 'seed-count', 'tape-fill', 'echo-readout',
       'hint', 'run-time', 'mute-button', 'motion-button', 'pause-button', 'complete-title',
-      'complete-copy', 'ending-stats'
+      'complete-copy', 'ending-copy', 'ending-stats'
     ];
     var el = {};
     ids.forEach(function (id) { el[id] = document.getElementById(id); });
@@ -145,7 +145,11 @@
         el['motion-button'].setAttribute('aria-pressed', String(!!settings.reducedMotion));
       }
       if (el['complete-title']) el['complete-title'].textContent = level && level.name ? level.name : 'Chamber complete';
-      if (el['complete-copy']) el['complete-copy'].textContent = 'The light remembers your way. Continue when you are ready.';
+      if (el['complete-copy']) {
+        var subtitle = level && level.subtitle ? level.subtitle + '. ' : '';
+        el['complete-copy'].textContent = subtitle + (levelIndex + 1) + ' of ' + levels.length + ' lights restored.';
+      }
+      if (el['ending-copy']) el['ending-copy'].textContent = 'The observatory wakes. What you left behind has become the way home.';
       if (el['ending-stats']) {
         var best = progress.bestTime == null ? '—' : formatTime(progress.bestTime);
         el['ending-stats'].textContent = 'Run time  ' + formatTime(runTime) + '   ·   Best time  ' + best + '   ·   Rewinds  ' + totalRewinds + '   ·   Deaths  ' + deathCount;
