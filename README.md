@@ -10,7 +10,7 @@ Collect every light seed, then touch the doorway. Echo platforms last 14 seconds
 
 ## Run locally
 
-The game uses classic deferred scripts and makes no network requests during play. Double-click `index.html` to play directly with `file://` in a browser that allows local canvas and audio. A local server is useful for browser testing and serves subdirectory paths as well:
+The game uses classic browser scripts and makes no network requests during play. Double-click `index.html` to play directly with `file://` in a browser that allows local canvas and audio. A local server is useful for browser testing and serves subdirectory paths as well:
 
 ```text
 npm install
@@ -28,3 +28,7 @@ npm run pack
 This writes `dist/afterlight-web.zip` using the platform's built-in archive utility. The archive contains the playable web files and no runtime packages.
 
 Progress, best time, mute, and reduced-motion preferences are stored locally in the browser. No account or network service is required.
+
+## Verify
+
+Run `npm install` and `npx playwright install chromium` once, then `npm run test:all`. Tests use headless Chromium only. They cover physical rewind collisions, all eight chamber solutions, actual keyboard campaign play through the ending, saved progress, audio activation, touch input, responsive layouts, local files, and a Pages subdirectory. The final performance check also measures a full memory path at 6× CPU throttling. Local evidence is written to the ignored `artifacts/` folder.

@@ -1,0 +1,15 @@
+{
+  "level": 4,
+  "actions": [
+    {"keys": [], "frames": 60},
+    {"keys": ["ArrowRight"], "frames": 70},
+    {"keys": ["Space", "ArrowRight"], "frames": 72},
+    {"keys": ["ArrowRight"], "frames": 26},
+    {"keys": ["Space", "ArrowRight"], "frames": 70},
+    {"keys": ["ArrowRight"], "frames": 25},
+    {"keys": ["Space", "ArrowRight"], "frames": 70},
+    {"keys": ["ArrowRight"], "frames": 26},
+    {"keys": ["Space", "ArrowRight"], "frames": 70},
+    {"keys": ["ArrowRight"], "frames": 60}
+  ]
+}

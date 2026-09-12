@@ -1,0 +1,20 @@
+{
+  "level":2,
+  "actions":[
+    {"keys":[],"frames":60},
+    {"keys":["ArrowRight"],"frames":122},
+    {"keys":[],"frames":30},
+    {"keys":["Space","ArrowRight"],"frames":78},
+    {"keys":[],"frames":380},
+    {"keys":["ArrowRight"],"frames":40},
+    {"keys":[],"frames":28},
+    {"keys":["ArrowLeft"],"frames":40},
+    {"keys":["e"],"frames":1},
+    {"keys":[],"frames":20},
+    {"keys":["Space","ArrowRight"],"frames":80},
+    {"keys":["ArrowRight"],"frames":24},
+    {"keys":[],"frames":10},
+    {"keys":["Space","ArrowRight"],"frames":76},
+    {"keys":["ArrowRight"],"frames":90}
+  ]
+}

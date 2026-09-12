@@ -1,0 +1,14 @@
+{
+  "level":1,
+  "actions":[
+    {"keys":[],"frames":60},
+    {"keys":["ArrowRight"],"frames":82},
+    {"keys":[],"frames":30},
+    {"keys":["Space","ArrowRight"],"frames":73},
+    {"keys":["ArrowRight"],"frames":25},
+    {"keys":["Space","ArrowRight"],"frames":70},
+    {"keys":["ArrowRight"],"frames":13},
+    {"keys":["Space","ArrowRight"],"frames":70},
+    {"keys":["ArrowRight"],"frames":105}
+  ]
+}
