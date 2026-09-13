@@ -44,6 +44,7 @@ async function run() {
       page.on('response', response => { if (response.status() >= 400) failed.push([response.url(), response.status()]); });
       page.on('requestfailed', request => failed.push([request.url(), request.failure().errorText]));
       await page.addInitScript(() => {
+        if (Element.prototype.requestPointerLock) Element.prototype.requestPointerLock = () => Promise.reject(new Error('Native pointer lock disabled in automation'));
         const Native = window.AudioContext || window.webkitAudioContext;
         window.__audioContexts = [];
         window.__oscillatorsStarted = 0;

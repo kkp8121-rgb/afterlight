@@ -30,6 +30,9 @@ function waitForServer(child) {
 
 async function openPage(browser, options, initScript) {
   const context = await browser.newContext(options || {});
+  await context.addInitScript(() => {
+    if (Element.prototype.requestPointerLock) Element.prototype.requestPointerLock = () => Promise.reject(new Error('Native pointer lock disabled in automation'));
+  });
   if (initScript) await context.addInitScript(initScript);
   const page = await context.newPage();
   await page.clock.install();
@@ -66,13 +69,20 @@ async function run() {
       openContexts.push(opened.context);
       const page = opened.page;
       await start(page);
+      const tapeMinimum = await page.evaluate(() => AL.tuning.tapeMinimumSeconds);
       await page.keyboard.down('ArrowRight');
-      await page.clock.runFor(250);
+      await page.clock.runFor((tapeMinimum + 0.2) * 1000);
       await page.keyboard.up('ArrowRight');
+      const moved = await state(page);
+      assert.ok(moved.state.player.x > 72, 'movement should change the player position before rewind');
+      assert.ok(moved.state.history.at(-1).t - moved.state.history[0].t >= tapeMinimum, 'record enough tape for a valid rewind');
       await page.keyboard.press('e');
       await page.clock.runFor(50);
       const beforeRestart = await state(page);
-      assert.ok(beforeRestart.state.player.x > 72, 'movement should change the player position');
+      assert.equal(beforeRestart.state.rewinds, moved.state.rewinds + 1, 'rewind succeeds after the minimum recording time');
+      assert.equal(beforeRestart.state.player.x, moved.state.history[0].x, 'rewind returns to the oldest recorded position');
+      assert.ok(beforeRestart.state.echo.length > 0 && beforeRestart.state.echoRemaining > 0, 'a successful rewind creates a live echo');
+      assert.match(await page.locator('#hint').textContent(), /warm afterimage/, 'active echo guidance matches the available platform');
       await page.keyboard.press('Escape');
       await page.clock.runFor(30);
       assert.equal(await page.evaluate(() => afterlight.mode), 'paused');
@@ -137,14 +147,23 @@ async function run() {
       await start(page);
       const right = page.locator('[data-control="right"]');
       assert.ok(await right.isVisible(), 'right touch control is visible on landscape phone');
-      await right.dispatchEvent('pointerdown', { pointerId: 41, pointerType: 'touch', bubbles: true });
+      const cdp = await opened.context.newCDPSession(page);
+      const box = await right.boundingBox();
+      await page.keyboard.down('d');
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ id: 41, x: box.x + box.width / 2, y: box.y + box.height / 2 }] });
       await page.clock.runFor(300);
       const heldX = (await state(page)).state.player.x;
-      await right.dispatchEvent('pointercancel', { pointerId: 41, pointerType: 'touch', bubbles: true });
-      await page.clock.runFor(300);
-      const releasedX = (await state(page)).state.player.x;
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchCancel', touchPoints: [] });
+      await page.clock.runFor(150);
+      const keyOnlyX = (await state(page)).state.player.x;
+      await page.keyboard.up('d');
+      await page.clock.runFor(150);
+      const stopped = (await state(page)).state.player;
       assert.ok(heldX > 72 + 15, 'held touch movement changes player position');
-      assert.ok(releasedX - heldX < 25, 'pointercancel releases held touch input');
+      assert.ok(keyOnlyX > heldX + 10, 'keyboard alias remains held after touch cancel');
+      assert.equal(stopped.vx, 0, 'final source release decelerates to rest');
+      await page.clock.runFor(150);
+      assert.equal((await state(page)).state.player.x, stopped.x, 'no source remains latched after release');
       report.touchCancel = 'passed';
       await opened.context.close();
       openContexts.pop();

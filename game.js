@@ -46,6 +46,13 @@
     var lastRenderedMode = '';
     var autoPaused = false;
     var held = Object.create(null);
+    var heldSources = {
+      left: new Set(),
+      right: new Set(),
+      down: new Set(),
+      jump: new Set(),
+      rewind: new Set()
+    };
     var pressed = { jump: false, rewind: false };
     var hintMessage = '';
     var hintMessageUntil = 0;
@@ -68,11 +75,21 @@
     }
 
     function clearInputs() {
+      Object.keys(heldSources).forEach(function (action) { heldSources[action].clear(); });
       held = Object.create(null);
       pressed.jump = false;
       pressed.rewind = false;
       var controls = document.querySelectorAll('[data-control]');
       for (var i = 0; i < controls.length; i++) controls[i].classList.remove('is-held');
+    }
+
+    function setHeld(action, source, active) {
+      var sources = heldSources[action];
+      if (!sources) return;
+      if (active) sources.add(source);
+      else sources.delete(source);
+      if (sources.size) held[action] = true;
+      else delete held[action];
     }
 
     function setMode(next) {
@@ -159,14 +176,15 @@
     function hintText(level) {
       if (!level) return '';
       if (hintMessage && wallTime < hintMessageUntil) return hintMessage;
-      if (levelIndex === 0 && state) {
+      if (state) {
         var totalSeeds = Array.isArray(state.collected) ? state.collected.length : 0;
         var foundSeeds = collectedCount();
         if (totalSeeds > 0 && foundSeeds >= totalSeeds) return 'All light gathered. Enter the glowing doorway.';
-        if (state.rewinds > 0 || (Array.isArray(state.echo) && state.echo.length > 0)) {
-          return 'Jump onto the warm afterimage. Jump again to reach the higher ledge.';
+        if (levelIndex === 0) {
+          var echoActive = Number(state.echoRemaining) > 0 && Array.isArray(state.echo) && state.echo.length > 0;
+          if (echoActive) return 'Jump onto the warm afterimage. Jump again to reach the higher ledge.';
+          return 'Hold SPACE for a high jump near the tall ledge. Press E near the top.';
         }
-        return 'Hold SPACE for a high jump near the tall ledge. Press E near the top.';
       }
       return level.hint || '';
     }
@@ -369,7 +387,7 @@
       if (!action) return;
       if (action === 'jump' && !event.repeat) pressed.jump = true;
       if (action === 'rewind' && !event.repeat) pressed.rewind = true;
-      held[action] = true;
+      setHeld(action, 'key:' + key, true);
       event.preventDefault();
       unlockAudio();
     }
@@ -382,7 +400,7 @@
       else if (key === 's' || key === 'arrowdown') action = 'down';
       else if (key === ' ' || key === 'w' || key === 'arrowup') action = 'jump';
       else if (key === 'e' || key === 'x') action = 'rewind';
-      if (action) delete held[action];
+      if (action) setHeld(action, 'key:' + key, false);
     }
 
     function bindTouch() {
@@ -393,7 +411,8 @@
           function down(event) {
             if (mode !== 'playing') return;
             event.preventDefault();
-            held[action] = true;
+            var source = 'pointer:' + String(event.pointerId);
+            setHeld(action, source, true);
             if (action === 'jump') pressed.jump = true;
             if (action === 'rewind') pressed.rewind = true;
             button.classList.add('is-held');
@@ -404,7 +423,8 @@
           }
           function up(event) {
             event.preventDefault();
-            delete held[action];
+            var source = 'pointer:' + String(event.pointerId);
+            setHeld(action, source, false);
             button.classList.remove('is-held');
           }
           button.addEventListener('pointerdown', down, { passive: false });

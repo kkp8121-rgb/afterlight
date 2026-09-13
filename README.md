@@ -27,8 +27,14 @@ npm run pack
 
 This writes `dist/afterlight-web.zip` using the platform's built-in archive utility. The archive contains the playable web files and no runtime packages.
 
+The fresh package check produced a 25,106-byte ZIP with 9 portable relative entries. `artifacts/package-verify.json` records a streaming SHA-256 comparison for every entry; all entries matched their source files.
+
 Progress, best time, mute, and reduced-motion preferences are stored locally in the browser. No account or network service is required.
 
 ## Verify
 
-Run `npm install` and `npx playwright install chromium` once, then `npm run test:all`. Tests use headless Chromium only. They cover physical rewind collisions, all eight chamber solutions, actual keyboard campaign play through the ending, saved progress, audio activation, touch input, responsive layouts, local files, and a Pages subdirectory. The final performance check also measures a full memory path at 6× CPU throttling. Local evidence is written to the ignored `artifacts/` folder.
+Run `npm install` and `npx playwright install chromium` once, then `npm run test:all`. Tests use headless Chromium only. The fresh core run passed 6/6 engine tests; the fresh browser and interaction runs passed the file/subpath smoke checks and all 8 interaction scenarios, including keyboard/touch held-source aggregation and release, pause, persistence, storage fallback, and portrait/small-landscape layout checks. During play, the afterimage hint is shown only while a live echo exists, and collecting every seed changes the hint to the doorway objective. The earlier all-eight-chamber campaign report is retained as historical evidence from the previous release; the current packet's fresh checks are the focused physical/UI regressions above. The final performance check also measures a full memory path at 6× CPU throttling. Local evidence is written to the ignored `artifacts/` folder.
+
+An additional fresh probe verified that an expired echo restores the creation hint and that releasing D does not cancel a held ArrowRight. Evidence: `artifacts/root-hint-alias.json`.
+
+Play at https://kkp8121-rgb.github.io/afterlight/. Publication evidence is generated separately in `artifacts/improvement-publication.json` after verifying the deployed commit, runtime asset hashes and headless startup.
